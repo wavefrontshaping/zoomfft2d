@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zoomfft2d"
+version = "0.1.0"
+description = "A Python package for performing zoomed 2D Fast Fourier Transforms using SciPy's ZoomFFT."
+authors = [
+    { name = "Sébastien M. Popoff", email = "sebastien.popoff@espci.fr" }
+]
+license = { text = "CeCILL" }
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib"
+]
+
+[tool.setuptools]
+packages = ["zoomfft2d"]
+
+[tool.setuptools.package-data]
+"zoomfft2d" = ["*.txt", "*.md"]
+
