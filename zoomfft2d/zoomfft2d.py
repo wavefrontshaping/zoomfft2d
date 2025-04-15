@@ -8,27 +8,30 @@ class ZoomFFT2D:
         mx, my = m
         self.n = n
         self.m = m
+        self.norm = np.sqrt(np.prod(self.n))
         self.direction = direction
 
         if direction not in ["forward", "backward"]:
             raise ValueError("direction must be 'forward' or 'backward'")
-        if isinstance(f_center, tuple):
-            self.f_center = [f * 2 for f in f_center]
+        if isinstance(f_center, tuple) or isinstance(f_center, list):
+            self.f_center = [2 * f for f in f_center]
         elif isinstance(f_center, float) or isinstance(f_center, int):
-            self.f_center = (f_center * 2, f_center * 2)
+            self.f_center = (2 * f_center, 2 * f_center)
         else:
             raise ValueError("f_center must be a tuple or a float")
 
-        if isinstance(f_range, tuple):
-            self.f_range = [f * 2 for f in f_range]
+        if isinstance(f_range, tuple) or isinstance(f_range, list):
+            self.f_range = [f for f in f_range]
         elif isinstance(f_range, float) or isinstance(f_range, int):
-            self.f_range = (f_range * 2, f_range * 2)
+            self.f_range = (f_range, f_range)
         else:
             raise ValueError("f_range must be a tuple or a float")
 
+        print(self.f_center, self.f_range)
+
         if pos_center is None:
             self.pos_center = ((self.n[0] - 1) / 2, (self.n[1] - 1) / 2)
-        elif isinstance(pos_center, tuple):
+        elif isinstance(pos_center, tuple) or isinstance(pos_center, list):
             self.pos_center = pos_center
         else:
             raise ValueError("pos_center must be a tuple")
@@ -49,16 +52,16 @@ class ZoomFFT2D:
     def _get_phase_ref(self):
         foc = np.zeros(self.n)
 
-        if self.pos_center[0] % 1 == 0:
-            start_x = int(self.pos_center[0])
-            end_x = int(self.pos_center[0]) + 1
+        if 2 * self.pos_center[0] % 1 == 0:
+            start_x = int(self.pos_center[0]) + 1
+            end_x = int(self.pos_center[0]) + 2
         else:
             start_x = int(self.pos_center[0])
             end_x = int(self.pos_center[0]) + 2
 
-        if self.pos_center[1] % 1 == 0:
-            start_y = int(self.pos_center[1])
-            end_y = int(self.pos_center[1]) + 1
+        if 2 * self.pos_center[1] % 1 == 0:
+            start_y = int(self.pos_center[1]) + 1
+            end_y = int(self.pos_center[1]) + 2
         else:
             start_y = int(self.pos_center[1])
             end_y = int(self.pos_center[1]) + 2
@@ -71,8 +74,9 @@ class ZoomFFT2D:
     def __call__(self, A):
         FFT = self.f1(A, axis=-2)
         FFT = self.f2(FFT, axis=-1)
+        FFT = FFT / self.norm
         if self.direction == "backward":
-            FFT = FFT[::-1, ::-1]
+            FFT = FFT[..., ::-1, ::-1]
         if self.ref is not None:
             return FFT * self.ref
         else:
